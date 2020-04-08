@@ -1,0 +1,15 @@
+---
+# Azure DevOps Personal Access Token
+azure_devops_pat: "DEVOPS_PERSONAL_ACCESS_TOKEN"
+
+# Azure DevOps Organization
+azure_organization: "DEVOPS_ORGANIZATION_NAME"
+
+# Bob the Builder Install Path
+bob_dir: "/opt/bob-the-builder"
+
+# Local directory containing blueprints
+blueprints_dir: "./files/blueprints/"
+
+# Tools Output Folder
+out_dir: "/opt/tools/"

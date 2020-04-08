@@ -1,0 +1,105 @@
+---
+
+- name: 'Clone Bob the Builder'
+  git:
+    repo: https://github.com/coffeegist/bob-the-builder.git
+    dest: '{{ bob_dir }}'
+
+
+- name: 'Install Bob the Builder Dependencies'
+  pip:
+    requirements: '{{ bob_dir }}/requirements.txt'
+    virtualenv: '{{ bob_dir }}/venv'
+    virtualenv_python: python3
+
+
+- name: 'Install Bob Config File'
+  copy:
+    src: '{{ bob_dir }}/bob/bob-config.json.sample'
+    dest: '{{ bob_dir }}/bob/bob-config.json'
+    remote_src: yes
+
+
+- name: 'Populate Azure Personal Access Token'
+  replace:
+    path: '{{ bob_dir }}/bob/bob-config.json'
+    regexp: 'SOME_ACCESS_TOKEN'
+    replace: '{{ azure_devops_pat }}'
+
+
+- name: 'Populate Azure DevOps Organization'
+  replace:
+    path: '{{ bob_dir }}/bob/bob-config.json'
+    regexp: 'YOUR_ORGANIZATION_HERE'
+    replace: '{{ azure_organization }}'
+
+
+- name: 'Upload Blueprints'
+  copy:
+    src: '{{ item }}'
+    dest: '{{ bob_dir }}/bob/blueprints/'
+  with_fileglob:
+    - '{{ blueprints_dir }}/*.json'
+
+
+- name: 'Gather Blueprints'
+  find:
+    paths: '{{ bob_dir }}/bob/blueprints/'
+    patterns: '*.json'
+  register: blueprints_glob
+
+
+- name: 'Run Bob on Blueprints'
+  command: 'chdir={{ bob_dir }}/bob/ ../venv/bin/python bob.py run -f {{ item.path }} -o {{ out_dir }}'
+  with_items:
+    - '{{ blueprints_glob.files }}'
+
+
+- name: 'Gather Blueprint Artifacts'
+  find:
+    paths: '{{ out_dir }}'
+    patterns: '*.zip'
+  register: artifacts_glob
+
+
+- name: Create Blueprint Artifact Directories
+  file:
+    path: '{{ out_dir }}{{ (item.path | basename | splitext)[0] }}'
+    state: directory
+  with_items:
+    - '{{ artifacts_glob.files }}'
+
+
+- name: 'Extract Blueprint Artifacts'
+  unarchive:
+    src: '{{ item.path }}'
+    dest: '{{ out_dir }}{{ (item.path | basename | splitext)[0] }}'
+    remote_src: yes
+  with_items:
+    - '{{ artifacts_glob.files }}'
+
+
+- name: 'Remove Artifact Zips'
+  file:
+    path: '{{ item.path }}'
+    state: absent
+  with_items:
+    - '{{ artifacts_glob.files }}'
+
+
+- name: 'Find Files for Flattening'
+  find:
+    paths: '{{ out_dir }}'
+    file_type: file
+    recurse: yes
+  register: tools_glob
+
+
+- name: 'Moving Payloads'
+  command: 'mv {{ item.path }} {{ out_dir }}'
+  with_items:
+    - '{{ tools_glob.files }}'
+
+
+- name: 'Clear Empty Directories'
+  command: 'find {{ out_dir }} -type d -empty -delete'
