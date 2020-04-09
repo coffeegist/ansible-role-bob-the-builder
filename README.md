@@ -1,5 +1,7 @@
 # ansible-role-bob-the-builder
 
+This is role designed to run pre-configured blueprints from [Bob the Builder](https://github.com/coffeegist/bob-the-builder) across your inventory.
+
 ## Role Variables
 
 To use this role, you must define the variables listed below. The easiest way to do this is to copy the `vars/main.yml.sample` file to `vars/main.yml` and add your Azure DevOps organization and personal access token.
@@ -11,6 +13,10 @@ To use this role, you must define the variables listed below. The easiest way to
 - bob_dir - The path to install Bob the Builder
 - blueprints_dir - A local directory containing the Bob the Builder blueprints to run
 - out_dir - A remote directory to store the final tools in
+
+## Blueprints
+
+This playbook uses Bob to run all of the blueprints found in the `files/blueprints` directory. Use Bob to generate blueprints, or get them from your teammates, and store them there before running the role.
 
 ## Adding to a Playbook
 
