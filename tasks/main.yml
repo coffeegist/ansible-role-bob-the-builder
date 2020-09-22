@@ -1,5 +1,9 @@
 ---
 
+- name: 'Pip Virtualenv'
+  pip:
+    name: 'virtualenv'
+
 - name: 'Clone Bob the Builder'
   git:
     repo: https://github.com/coffeegist/bob-the-builder.git
@@ -96,7 +100,9 @@
 
 
 - name: 'Moving Payloads'
-  command: 'mv {{ item.path }} {{ out_dir }}'
+  command: 'mv {{ item.path }} ../'
+  args:
+    chdir: '{{ (item.path | dirname ) }}'
   with_items:
     - '{{ tools_glob.files }}'
 
