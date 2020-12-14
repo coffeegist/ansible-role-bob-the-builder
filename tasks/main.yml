@@ -3,6 +3,8 @@
 - name: 'Pip Virtualenv'
   pip:
     name: 'virtualenv'
+    extra_args: '--system'
+  become: True
 
 - name: 'Clone Bob the Builder'
   git:
